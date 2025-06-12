@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URI=mongodb://mongodb:27017
+      - NODE_ENV=production
+    depends_on:
+      - mongodb
+    networks:
+      - twitter-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - twitter-network
+    restart: unless-stopped
+
+networks:
+  twitter-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local 
