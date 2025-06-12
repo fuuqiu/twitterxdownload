@@ -14,6 +14,24 @@ body {
   @apply py-4;
 }
 
+/* Twitter Follow Button Styles */
+:root {
+  --twitter-button-bg: transparent !important;
+}
+
+.twitter-follow-button,
+.twitter-follow-button-rendered,
+iframe.twitter-follow-button {
+  background: var(--twitter-button-bg) !important;
+}
+
+/* Dark mode styles */
+.dark .twitter-follow-button,
+.dark .twitter-follow-button-rendered,
+.dark iframe.twitter-follow-button {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
 .article-content img, .article-content video{
   width: 100%;
   height: auto;

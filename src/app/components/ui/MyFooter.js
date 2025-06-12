@@ -21,22 +21,6 @@ export default function MyFooter({ locale = 'en' }) {
             existingScript.remove();
         }
 
-        // 添加自定义样式
-        const style = document.createElement('style');
-        style.textContent = `
-            .twitter-wrapper {
-                display: inline-flex;
-                align-items: center;
-            }
-            .twitter-follow-button {
-                color: #fff !important;
-            }
-            #twitter-widget-0 {
-                opacity: 1 !important;
-            }
-        `;
-        document.head.appendChild(style);
-
         // 加载 Twitter widget JS
         const script = document.createElement('script');
         script.src = "https://platform.twitter.com/widgets.js";
@@ -44,10 +28,12 @@ export default function MyFooter({ locale = 'en' }) {
         
         // 监听脚本加载完成
         script.onload = () => {
+            // 确保 widgets 已加载
             if (window.twttr) {
                 window.twttr.widgets.load();
+                // 设置主题
+                updateTwitterTheme();
             }
-            updateTwitterTheme();
         };
         
         document.body.appendChild(script);
@@ -55,16 +41,28 @@ export default function MyFooter({ locale = 'en' }) {
         // 监听主题变化，更新 Twitter 按钮
         const updateTwitterTheme = () => {
             const isDark = document.documentElement.classList.contains('dark');
-            document.querySelectorAll('.twitter-follow-button').forEach(button => {
-                button.setAttribute('data-theme', isDark ? 'dark' : 'light');
-            });
             if (window.twttr && window.twttr.widgets) {
-                window.twttr.widgets.load();
+                window.twttr.widgets.createFollowButton(
+                    process.env.NEXT_PUBLIC_TWITTER_USERNAME,
+                    document.querySelector('#twitter-follow-container'),
+                    {
+                        size: 'large',
+                        showCount: false,
+                        theme: isDark ? 'dark' : 'light'
+                    }
+                );
             }
         };
 
         // 创建观察器监听主题变化
-        const observer = new MutationObserver(updateTwitterTheme);
+        const observer = new MutationObserver(() => {
+            const twitterContainer = document.querySelector('#twitter-follow-container');
+            if (twitterContainer) {
+                twitterContainer.innerHTML = ''; // 清除现有按钮
+                updateTwitterTheme(); // 重新创建按钮
+            }
+        });
+        
         observer.observe(document.documentElement, {
             attributes: true,
             attributeFilter: ['class']
@@ -74,9 +72,6 @@ export default function MyFooter({ locale = 'en' }) {
             observer.disconnect();
             if (existingScript) {
                 existingScript.remove();
-            }
-            if (style) {
-                style.remove();
             }
         };
     }, []);
@@ -97,17 +92,7 @@ export default function MyFooter({ locale = 'en' }) {
                         <p className="text-sm text-gray-500 dark:text-gray-400">
                             © 2024 <a href="https://twitterxdownload.com" target="_blank" className="hover:text-primary dark:hover:text-primary-400">TwitterXDownload</a> {t('All rights reserved.')}
                         </p>
-                        <div className="twitter-wrapper">
-                            <a 
-                                href={`https://twitter.com/${process.env.NEXT_PUBLIC_TWITTER_USERNAME}?ref_src=twsrc%5Etfw`}
-                                className="twitter-follow-button" 
-                                data-show-count="false"
-                                data-size="large"
-                                data-dnt="true"
-                            >
-                                Follow @{process.env.NEXT_PUBLIC_TWITTER_USERNAME}
-                            </a>
-                        </div>
+                        <div id="twitter-follow-container" className="!min-w-[160px] overflow-hidden"></div>
                     </div>
                 </div>
 
